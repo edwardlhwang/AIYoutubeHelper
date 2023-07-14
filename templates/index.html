@@ -1,23 +1,20 @@
 <!DOCTYPE html>
 <head>
-  <title>News Summarizer</title>
+  <title>Youtube Comment Analyzer</title>
   <link
     rel="shortcut icon"
-    href="{{ url_for('static', filename='news.png') }}"
+    href="{{ url_for('static', filename='dog.png') }}"
   />
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
 </head>
 
 <body>
   <img src="{{ url_for('static', filename='dog.png') }}" class="icon" />
-  <h3>Name my pet v2</h3>
-  <form method="post" action="/">
-    <label for="url">Link to Article:</label>
-    <input type="text" id="animal" name="animal" required><br><br>
-    <label for="human">Human:</label>
-    <input type="text" id="human" name="human" required><br><br>
-    <input type="submit" value="Generate Names">
-</form>
+  <h3>Youtube Video Link</h3>
+  <form action="/" method="post">
+    <input type="text" name="videoLink" placeholder="Enter a video Link" required />
+    <input type="submit" value="Analyze comments" />
+  </form>
   {% if result %}
   <div class="result">{{ result }}</div>
   {% endif %}
