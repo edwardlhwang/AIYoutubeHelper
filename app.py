@@ -3,6 +3,7 @@ import requests
 import openai
 import re
 from flask import Flask, redirect, render_template, request, url_for
+import googleapiclient.discovery
 
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -10,13 +11,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route("/", methods=("GET", "POST"))
 def index():
-
-
     if request.method == "POST":
         videoLink = request.form["videoLink"]
         videoId = get_video_id(videoLink)
+        print('Video Id: =======================', videoId)
         videoComments = get_youtube_comments(videoId)
-        print(videoComments)
+        print('Video Comments: ===============', videoComments)
         response = openai.Completion.create(
             model="text-davinci-003",
             prompt=generate_prompt("test", videoComments),
@@ -39,50 +39,42 @@ Names:""".format(
 
 
 def get_youtube_comments(video_id):
-  """Gets all the comments on a YouTube video.
+    """Gets all the comments on a YouTube video.
 
-  Args:
+    Args:
     video_id: The ID of the YouTube video.
 
-  Returns:
+    Returns:
     A list of dictionaries, where each dictionary represents a comment.
-  """
+    """
+    os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+    api_service_name = "youtube"
+    api_version = "v3"
+    DEVELOPER_KEY = os.getenv("YOUTUBE_API_KEY")
 
-  api_key = os.getenv("YOUTUBE_API_KEY")
-  url = "https://www.googleapis.com/youtube/v3/commentThreads"
-  params = {
-    "part": "snippet",
-    "videoId": video_id,
-    "maxResults": 100,
-  }
+    youtube = googleapiclient.discovery.build(
+    api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
-  headers = {
-    "Authorization": f"Bearer {api_key}",
-  }
+    request = youtube.commentThreads().list(
+    part="snippet",
+    videoId=video_id
+    )
+    response = request.execute()
 
-  response = requests.get(url, params=params, headers=headers)
-  if response.status_code == 200:
-    data = response.json()
-    comments = []
-    for comment_thread in data["items"]:
-      comments.append(comment_thread["snippet"]["topLevelComment"]["snippet"])
-    return comments
-  else:
-    print(f"Error getting comments: {response.status_code}")
-    return None
+    print(response)
   
 def get_video_id(link):
-  """Gets the video ID from a YouTube link.
+    """Gets the video ID from a YouTube link.
 
-  Args:
-    link: The YouTube link.
+    Args:
+        link: The YouTube link.
 
-  Returns:
-    The video ID.
-  """
+    Returns:
+        The video ID.
+    """
 
-  match = re.search(r"watch\?v=(.*)", link)
-  if match:
-    return match.group(1)
-  else:
-    return None
+    match = re.search(r"watch\?v=(.*)", link)
+    if match:
+        return match.group(1)
+    else:
+        return None
