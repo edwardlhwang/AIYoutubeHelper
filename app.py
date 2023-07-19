@@ -16,23 +16,19 @@ def index():
         videoLink = request.form["videoLink"]
         videoId = get_video_id(videoLink)
         videoComments = get_youtube_comments(videoId)
-        print('Video Comments: ===============', videoComments)
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=generate_prompt(videoComments),
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "{}".format(generate_prompt(videoComments))}],
             temperature=0.6,
         )
-        return redirect(url_for("index", result=response.choices[0].text))
+        return redirect(url_for("index", result=response.choices[0]['message']['content']))
     
     result = request.args.get("result")
     return render_template("index.html", result=result)
 
 
 def generate_prompt(videoComments):
-    # for comment in videoComments:
-    #    print(comment)
-    return """Given the list of youtube comments, provide a rating from 0-100 and an explanation, with 0 being misinformation and bad content,
-      and 100 being stellar entertaining content with good information: {}""".format(videoComments)
+    return """Given the following list of youtube comments, provide a rating of the video that they are commenting from 0-100. Please also give a short explanation. {}""".format(videoComments)
 
 
 
@@ -56,7 +52,7 @@ def get_youtube_comments(video_id):
     request = youtube.commentThreads().list(
     part="snippet",
     videoId=video_id,
-    maxResults=20
+    maxResults=50
     )
     response = request.execute()
 
@@ -64,6 +60,7 @@ def get_youtube_comments(video_id):
     for comment_thread in response['items']:
         comments.append(comment_thread["snippet"]["topLevelComment"]["snippet"]["textOriginal"])
 
+    print(comments)
     return comments
   
 def get_video_id(link):
