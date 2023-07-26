@@ -2,6 +2,8 @@
 
 This is a basic application with the following features
 
+[Test out the application here] (https://youtube-comment-gpt-e026987303e5.herokuapp.com/)
+
 ## Setup
 
 1. If you don’t have Python installed, [install it from here](https://www.python.org/downloads/).
